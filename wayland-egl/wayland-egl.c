@@ -1,3 +1,4 @@
+#include <EGL/egl.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -5,6 +6,7 @@
 #include <assert.h>
 #include <wayland-client-protocol.h>
 #include <wayland-client.h>
+#include <EGL/egl.h>
 
 typedef struct GlobalObject GlobalObject;
 struct GlobalObject {
@@ -16,6 +18,7 @@ typedef struct Display Display;
 struct Display {
   struct wl_display *wl_display;
   struct wl_registry *registry;
+  EGLDisplay egl_display;
 };
 
 static void global_object_is_ready(void *data, struct wl_registry *registry, uint32_t id, const char *interface, uint32_t version) {
@@ -36,6 +39,21 @@ static struct wl_registry_listener registry_listener = {
   global_object_is_ready,
   global_object_has_been_removed
 };
+
+static void initializeEGL(Display *display) {
+  /*
+   * Get the EGL display connection for the wayland display
+   * See https://registry.khronos.org/EGL/sdk/docs/man/html/eglGetDisplay.xhtml
+   */
+  display->egl_display = eglGetDisplay(display->wl_display);
+
+  /*
+   * Initialize the EGL display connection
+   * See https://registry.khronos.org/EGL/sdk/docs/man/html/eglInitialize.xhtml
+   */
+  EGLBoolean initializationSuccessful = eglInitialize(display->egl_display, /* major version */NULL, /* minor version */NULL);
+  assert(initializationSuccessful == EGL_TRUE);
+}
 
 static void disable_wayland_debug_log() {
   putenv("WAYLAND_DEBUG=0");
@@ -59,6 +77,8 @@ int main() {
   wl_display_roundtrip(display.wl_display);
   assert(global_object.compositor);
   assert(global_object.shell);
+
+  initializeEGL(&display);
 
   wl_display_disconnect(display.wl_display);
 

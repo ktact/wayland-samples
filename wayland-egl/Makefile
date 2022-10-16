@@ -2,7 +2,7 @@ CC=gcc
 TARGET=wayland-egl
 SRCS=$(wildcard *.c)
 OBJS=$(SRCS:.c=.o)
-LDFLAGS=-lwayland-client
+LDFLAGS=-lwayland-client -lEGL
 
 $(TARGET): $(SRCS)
 	$(CC) $^ -o $@ $(LDFLAGS)
