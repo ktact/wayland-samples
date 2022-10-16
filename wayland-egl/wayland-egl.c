@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <assert.h>
 #include <wayland-client-protocol.h>
 #include <wayland-client.h>
@@ -16,7 +17,13 @@ static struct wl_registry_listener registry_listener = {
   global_object_has_been_removed
 };
 
+static void disable_wayland_debug_log() {
+  putenv("WAYLAND_DEBUG=0");
+}
+
 int main() {
+  disable_wayland_debug_log();
+
   struct wl_display *display = wl_display_connect(NULL);
   assert(display);
 
