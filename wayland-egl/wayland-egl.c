@@ -12,6 +12,12 @@ struct GlobalObject {
   struct wl_shell *shell;
 };
 
+typedef struct Display Display;
+struct Display {
+  struct wl_display *wl_display;
+  struct wl_registry *registry;
+};
+
 static void global_object_is_ready(void *data, struct wl_registry *registry, uint32_t id, const char *interface, uint32_t version) {
   GlobalObject *global = (GlobalObject *)data;
 
@@ -36,23 +42,25 @@ static void disable_wayland_debug_log() {
 }
 
 int main() {
+  Display      display       = {0};
+  GlobalObject global_object = {0};
+
   disable_wayland_debug_log();
 
-  struct wl_display *display = wl_display_connect(NULL);
-  assert(display);
+  display.wl_display = wl_display_connect(NULL);
+  assert(display.wl_display);
 
-  struct wl_registry *registry = wl_display_get_registry(display);
-  assert(registry);
+  display.registry = wl_display_get_registry(display.wl_display);
+  assert(display.registry);
 
-  GlobalObject global_object = {0};
-  wl_registry_add_listener(registry, &registry_listener, &global_object);
+  wl_registry_add_listener(display.registry, &registry_listener, &global_object);
 
   // IMPORTANT: Wait for the server to process the request
-  wl_display_roundtrip(display);
+  wl_display_roundtrip(display.wl_display);
   assert(global_object.compositor);
   assert(global_object.shell);
 
-  wl_display_disconnect(display);
+  wl_display_disconnect(display.wl_display);
 
   return 0;
 }
