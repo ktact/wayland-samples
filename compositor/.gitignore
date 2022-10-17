@@ -1,0 +1,4 @@
+compositor
+.gdb_history
+peda-session*.txt
+*.swp
